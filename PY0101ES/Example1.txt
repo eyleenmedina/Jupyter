@@ -1,0 +1,54 @@
+Sub ListaCitasdeOutlook()
+Dim olApp As Object, olNS As Object, olCalendario As Object
+Dim Cita As Object
+Dim fila As Long
+
+Dim FechaIni As Date, FechaFin As Date
+FechaIni = Now         'el día actual
+FechaFin = (Now + 30)  'hasta 30 días después
+
+'Trabajamos sobre Outlook
+Set olApp = CreateObject("Outlook.Application")
+Set olNS = olApp.GetNamespace("MAPI")
+'declaramos el objeto de la carpeta de los Calendarios
+'(9 equivale a la carpeta del Calendario)
+Set olCalendario = olNS.GetDefaultFolder(9)
+'Ordenamos las Citas por Fecha de Inicio
+Set misCitas = olCalendario.Items
+misCitas.Sort "[Start]", False
+
+'cabecera en nuestra hoja de cálculo
+Range("A1:L1").Value = Array("Asunto", "Fecha-Hora Inicio", "Fecha-Hora fin", "Cuerpo", _
+    "Duración(minutos)", "Ubicación", "Categoria", "Organizador", _
+    "Asitentes invitados", "Asistentes opcionales", "Mostar como", "Todo el día")
+'completamos los datos desde la fila 2 de la hoja seleccionada
+fila = 2
+'recorremos todas las citas del calendario
+For Each Cita In misCitas
+    If Cita.Start >= FechaIni And Cita.Start <= FechaFin Then
+        Cells(fila, "A").Value = CStr(Cita.Subject)     'Asunto
+        Cells(fila, "B").Value = Cita.Start             'Fecha + Hora Inico
+        Cells(fila, "C").Value = Cita.End               'Fecha + Hora Fin
+        Cells(fila, "D").Value = Cita.Body              'Cuerpo o texto
+        Cells(fila, "E").Value = Cita.Duration          'Duración
+        Cells(fila, "F").Value = Cita.Location          'Ubicación
+        Cells(fila, "G").Value = Cita.Categories        'Categoria
+        Cells(fila, "H").Value = Cita.Organizer         'Organizador
+        Cells(fila, "I").Value = Cita.RequiredAttendees 'Asistentes
+        Cells(fila, "J").Value = Cita.OptionalAttendees 'Asistentes
+        Cells(fila, "K").Value = Cita.BusyStatus        'Tipo de estado
+        '0-Disponible, 1-Provisional, 2-Ocupado, 3-Fuera de la oficina o 4-Trabajando en otro lugar
+        Cells(fila, "L").Value = Cita.AllDayEvent       'marcado como evento de Todo el día
+        
+        'preparamos para siguiente fila
+        fila = fila + 1
+    End If
+Next Cita
+
+MsgBox "Proceso finalizado"
+'liberamos memoria
+Set Cita = Nothing
+Set olCalendario = Nothing
+Set olNS = Nothing
+Set olApp = Nothing
+End Sub
